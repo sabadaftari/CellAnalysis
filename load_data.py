@@ -172,9 +172,9 @@ def load_csv_data(cursor,path):
 def main():
     
     # delete old file completely from scratch if it exists
-    if DB_NAME.exists():
+    if Path(DB_NAME).exists():
             try:
-                DB_NAME.unlink()
+                Path(DB_NAME).unlink()
                 print(f"Existing '{DB_NAME}' found and cleanly removed.")
             except OSError as e:
                 print(f"Error purging old database file: {e}")
