@@ -3,6 +3,7 @@ import sqlite3
 
 import pandas as pd
 import streamlit as st
+import plotly.express as px
 
 import data_overview
 import statistical_analysis
@@ -28,15 +29,35 @@ def get_connection() -> sqlite3.Connection:
         st.stop()
     return sqlite3.connect(DB_PATH)
 
+# preventing runtime vulnerability by streamlit caching
+@st.cache_data(ttl=3600)  # caches the dataframe in memory for 1 hour
+def load_cached_frequencies(csv_path: str) -> pd.DataFrame:
+    if not os.path.exists(csv_path):
+        if not os.path.exists(DB_PATH):
+            st.error("cell-count.db not found. Run `make pipeline` first.")
+            st.stop()
+        conn = sqlite3.connect(DB_PATH)
+        conn.execute("PRAGMA foreign_keys = ON;")
+        df_freq = data_overview.compute_frequencies(conn)
+        conn.close()
+        return df_freq
+    else:
+        return pd.read_csv(csv_path)
+
 """ Tab 0: quick database overview """
 
 with tab_overview:
-    conn = get_connection()
-    n_projects = conn.execute("SELECT COUNT(*) FROM projects").fetchone()[0]
-    n_subjects = conn.execute("SELECT COUNT(*) FROM subjects").fetchone()[0]
-    n_samples = conn.execute("SELECT COUNT(*) FROM samples").fetchone()[0]
-    n_counts = conn.execute("SELECT COUNT(*) FROM cell_counts").fetchone()[0]
-    conn.close()
+
+    # use contextual database block execution to prevent connection memory locks
+    try:
+        with get_connection() as conn:
+            n_projects = conn.execute("SELECT COUNT(*) FROM projects").fetchone()[0]
+            n_subjects = conn.execute("SELECT COUNT(*) FROM subjects").fetchone()[0]
+            n_samples = conn.execute("SELECT COUNT(*) FROM samples").fetchone()[0]
+            n_counts = conn.execute("SELECT COUNT(*) FROM cell_counts").fetchone()[0]
+    except Exception as error:
+        st.error(f"Failed to query database schema metrics: {error}")
+        st.stop()
 
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("Projects", n_projects)
@@ -52,12 +73,7 @@ with tab_freq:
     st.subheader("Relative frequency of each cell population per sample")
 
     csv_path = os.path.join(OUTPUT_DIR, "part2_frequencies.csv")
-    if not os.path.exists(csv_path):
-        conn = get_connection()
-        df_freq = data_overview.compute_frequencies(conn)
-        conn.close()
-    else:
-        df_freq = pd.read_csv(csv_path)
+    df_freq = load_cached_frequencies(csv_path)
 
     samples = sorted(df_freq["sample"].unique())
     selected = st.multiselect("Filter by sample (leave empty to show all)", samples)
@@ -115,7 +131,6 @@ with tab_stats:
         filtered_plot_df = raw_stats_df[raw_stats_df["population"] == selected_population]
 
         # generate an interactive boxplot with Plotly Express
-        import plotly.express as px
 
         fig = px.box(
             filtered_plot_df, 
