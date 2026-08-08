@@ -44,7 +44,7 @@ def load_cached_frequencies(csv_path: str) -> pd.DataFrame:
     else:
         return pd.read_csv(csv_path)
 
-#""" Tab 0: quick database overview """
+# """ Tab 0: quick database overview """
 
 with tab_overview:
 
