@@ -30,7 +30,15 @@ behind.
 
 ## Dashboard
 
-[Link to the running dashboard goes here]
+Because this application runs within a dynamically isolated container environment on GitHub Codespaces, a static URL cannot be hardcoded into this repository's documentation. 
+
+To view and interact with the live dashboard application, execute the launch target within your active workspace terminal:
+
+```bash
+make dashboard
+```
+Look for a visual pop-up notification in the lower right hand interface boundary of your editor and select **"Open in Browser"**. Alternatively, navigate directly to the **Ports** panel tab adjacent to your terminal window, locate forwarded port `8501`, and click the **Local Address** internet hyperlink icon.
+
 
 ## Database schema
 
@@ -104,9 +112,12 @@ tested, or debugged independently:
 
 ### Design rationale
 
-- One script per Part: keeps each analysis self-contained and directly
+- One script per part: keeps each analysis self-contained and directly
   traceable to the assignment requirements.
-- Operational Simplicity: Avoided using a separate `chema.db` file to keep the project     footprint as minimal as possible. Fewer external files mean fewer points of failure, making the application easier to deploy and ensuring it won't break if a secondary file is accidentally misplaced or omitted.
+- Operational Simplicity: Avoided using a separate `chema.db` file to keep 
+  the project footprint as minimal aspossible. Fewer external files mean fewer 
+  points of failure, making the application easier to deploy and ensuring 
+  it won't break if a secondary file is accidentally misplaced or omitted.
 - SQL does the heavy filtering/joining, pandas does the shaping: Each
   script issues one focused SQL query against `cell_counts.db`, then
   uses pandas only for percentage math, grouping, and formatting the final
@@ -122,4 +133,15 @@ tested, or debugged independently:
   because relative-frequency percentages are bounded and often skewed, so a
   non-parametric test that doesn't assume normally-distributed data is a
   safer default for convincing Yah D'yada of a real effect.
-- Replaced static boxplot chart with interactive rendering. This gives users visibility into the underlying dataset numbers. Ensuring the dashboard is fully functional rather than just a presentation layer.
+- Replaced static boxplot chart with interactive rendering. This gives users 
+  visibility into the underlying dataset numbers. Ensuring the dashboard is 
+  fully functional rather than just a presentation layer.
+
+## Recommendation for future:
+While standard criteria require an assessment of individual population significance variances, a production-grade clinical trial environment introduces major statistical constraints if evaluated via isolated non-parametric checks alone. 
+Here are some thoughts that if I had time I would proactively implement them in the following to ensure statistical validity and deliver compelling clinical evidence:
+
+1. * I would integrate a False Discovery Rate (FDR) adjustment layer utilizing the Benjamini-Hochberg procedure(`statsmodels.stats.multitest.multipletests`). This penalizes cumulative p-values based on the total number of tested hypotheses, ensuring any discovered biomarker survivably crosses rigorous statistical thresholds.
+
+
+2. * I would expand the analytical suite from serial univariate metrics to a Multivariate Logistic Regression framework (`statsmodels.formula.api.logit`). This allows us to model therapeutic outcomes cleanly using formula syntax:
