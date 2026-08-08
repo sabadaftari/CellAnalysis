@@ -44,7 +44,7 @@ def load_cached_frequencies(csv_path: str) -> pd.DataFrame:
     else:
         return pd.read_csv(csv_path)
 
-""" Tab 0: quick database overview """
+#""" Tab 0: quick database overview """
 
 with tab_overview:
 
@@ -67,7 +67,7 @@ with tab_overview:
 
     st.markdown("Database file: `cell-counts.db`")
 
-"""Tab 1: Part 2 - relative frequency table"""
+#"""Tab 1: Part 2 - relative frequency table"""
 
 with tab_freq:
     st.subheader("Relative frequency of each cell population per sample")
@@ -85,7 +85,7 @@ with tab_freq:
                         file_name="part2_frequencies.csv")
 
 
-""" Tab 2: Part 3 - responders vs non-responders, interactive map """
+#""" Tab 2: Part 3 - responders vs non-responders, interactive map """
 
 with tab_stats:
     st.subheader(" Melanoma + Miraclib + PBMC: Responders vs Non-Responders")
@@ -167,7 +167,7 @@ with tab_stats:
         st.warning("Statistical breakdown file `part3_stats.csv` missing. Run `make pipeline` to compile.")
 
 
-""" Tab 3: Part 4 - baseline subset breakdowns""" 
+#""" Tab 3: Part 4 - baseline subset breakdowns""" 
 
 with tab_subset:
     st.subheader("Day0, a subset of melanoma + miraclib + PBMC ")
