@@ -3,7 +3,7 @@
 Analysis pipeline and interactive dashboard for a clinical trial
 cell count data (`cell-count.csv`).
 
-## Installation
+## How to run this
 
 ```bash
 make setup      # installs pandas, matplotlib, scipy, streamlit
@@ -46,10 +46,10 @@ The data is modeled as four normalized tables that mirror the natural
 hierarchy of a clinical trial: **project → subject → sample → cell count**.
 
 ```
-projects (project_id)
-  └── subjects (subject_id, project_id, condition, age, sex, treatment, response)
-        └── samples (sample_id, subject_id, sample_type, time_from_treatment_start)
-              └── cell_counts (sample_id, population, count)
+projects (project)
+  └── subjects (subject, project, condition, age, sex, treatment, response)
+        └── samples (sample, subject, sample_type, time_from_treatment_start)
+              └── cell_counts (sample, population, count)
 ```
 
 ### Why this design
@@ -85,7 +85,7 @@ The current schema keeps working well for larger datasets according to the follo
 2. The long-format `cell_counts` table grows linearly with
   `n_samples * n_populations`. This is the largest table by row count, but
   each row is tiny (4 integer/text fields), and it is exactly the shape
-  SQL is good at aggregating (`GROUP BY population`, `GROUP BY sample_id`,
+  SQL is good at aggregating (`GROUP BY population`, `GROUP BY sample`,
   `SUM(count)`, etc.) without needing a schema change.
 3. New analytics types plug in as new queries, not new tables. Because
   every population is a row rather than a column, adding a totally new kind
@@ -108,7 +108,7 @@ tested, or debugged independently:
 | `statistical_analysis.py` | **Part 3.** Filters to melanoma + miraclib + PBMC samples, compares responders vs non-responders per population with a Mann-Whitney U test, and saves a boxplot (`outputs/part3_boxplot.png`) and a stats table (`outputs/part3_stats.csv`). |
 | `data_subset_analysis.py` | **Part 4.** Filters to day0 melanoma + miraclib + PBMC samples and breaks the subset down by project, response, and sex. |
 | `dashboard.py` | Streamlit dashboard that displays the outputs of Parts 2-4 interactively (falls back to recomputing from the database live if the `outputs/` CSVs aren't present yet, except for tab 2). |
-| `Makefile` | `make setup`, `make pipeline`, `make dashboard` — see "How to run this" above. |
+| `Makefile` | `make setup`, `make pipeline`, `make dashboard`  see "How to run this" above. |
 
 ### Design rationale
 
@@ -138,10 +138,9 @@ tested, or debugged independently:
   fully functional rather than just a presentation layer.
 
 ## Recommendation for future:
-While standard criteria require an assessment of individual population significance variances, a production-grade clinical trial environment introduces major statistical constraints if evaluated via isolated non-parametric checks alone. 
+While standard criteria require an assessment of individual population significance variances, a better clinical trial environment introduces major statistical constraints if evaluated via non-parametric checks alone. 
 Here are some thoughts that if I had time I would proactively implement them in the following to ensure statistical validity and deliver compelling clinical evidence:
 
 1. * I would integrate a False Discovery Rate (FDR) adjustment layer utilizing the Benjamini-Hochberg procedure(`statsmodels.stats.multitest.multipletests`). This penalizes cumulative p-values based on the total number of tested hypotheses, ensuring any discovered biomarker survivably crosses rigorous statistical thresholds.
-
 
 2. * I would expand the analytical suite from serial univariate metrics to a Multivariate Logistic Regression framework (`statsmodels.formula.api.logit`). This allows us to model therapeutic outcomes cleanly using formula syntax:
