@@ -196,7 +196,7 @@ def main():
         connection.rollback()
         print(f"\nError: Failed to load data. Details: {error}")
 
-    finally:
+    finally: # we always want to close the connection so no database is left open
         connection.close()
 
 
